@@ -1,7 +1,3 @@
-mhcoin.duckdns.org
-9999
-gtfobaeb
-
 51.15.127.80
 2811
 gtfobaeb
