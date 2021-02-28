@@ -1,8 +1,8 @@
-mhcoin.duckdns.org
-9999
+51.15.127.80
+2811
 gtfobaeb
 
 #####
-51.15.127.80
-2811
+mhcoin.duckdns.org
+9999
 gtfobaeb
